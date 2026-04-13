@@ -151,7 +151,7 @@ export const translations = {
     noAccess: 'No Access',
     noPermission: "You don't have permission to access this page.",
   },
-} as const
+}
 
 export type Translations = typeof translations.he
 
