@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSupabase } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   const { userId, providerId } = await request.json()
 
   // Create or retrieve Stripe customer
-  const { data: boUser } = await adminSupabase
+  const { data: boUser } = await getAdminSupabase()
     .from('backoffice_users')
     .select('stripe_customer_id')
     .eq('id', userId)
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   })
 
   // Upsert backoffice_user with stripe_customer_id and providerId
-  await adminSupabase.from('backoffice_users').upsert({
+  await getAdminSupabase().from('backoffice_users').upsert({
     id: userId,
     role: 'beauty_pro',
     linked_entity_id: providerId,

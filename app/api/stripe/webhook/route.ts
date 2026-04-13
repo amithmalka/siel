@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSupabase } from '@/lib/supabase/admin'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.updated':
     case 'customer.subscription.deleted': {
       const newStatus = statusMap[sub.status] ?? 'inactive'
-      await adminSupabase
+      await getAdminSupabase()
         .from('backoffice_users')
         .update({ subscription_status: newStatus, stripe_subscription_id: sub.id })
         .eq('stripe_customer_id', customerId)

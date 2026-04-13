@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSupabase } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
+    const adminSupabase = getAdminSupabase()
     // Verify authenticated user
     const supabase = await createClient()
     const { data: { user }, error: authErr } = await supabase.auth.getUser()

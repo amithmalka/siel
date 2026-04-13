@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { adminSupabase } from '@/lib/supabase/admin'
+import { getAdminSupabase } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
   if (!boUser || boUser.role !== 'beauty_pro') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+
+  const adminSupabase = getAdminSupabase()
 
   const { data: appt } = await adminSupabase
     .from('appointments')
