@@ -14,8 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="ltr">
       <body className={`${inter.variable} font-sans bg-cream min-h-screen`}>
-        {children}
-        <Providers />
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

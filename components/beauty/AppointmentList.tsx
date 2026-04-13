@@ -6,27 +6,28 @@ import { formatDate, formatTime } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { Check, X } from 'lucide-react'
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'ממתין לאישור',
-  provider_confirmed: 'מאושר',
-  user_confirmed: 'מאושר סופית',
-  cancelled: 'מבוטל',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-pink-pale text-pink-deep',
-  provider_confirmed: 'bg-green-100 text-green-700',
-  user_confirmed: 'bg-green-100 text-green-700',
-  cancelled: 'bg-beige text-textMuted',
-}
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export function AppointmentList({ appointments: initial, providerId }: { appointments: Appointment[]; providerId: string }) {
   const [appointments, setAppointments] = useState(initial)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const supabase = createClient()
+  const { t } = useLanguage()
 
-  // Realtime subscription — new appointments arrive live
+  const STATUS_LABELS: Record<string, string> = {
+    pending: t.statusPending,
+    provider_confirmed: t.statusProviderConfirmed,
+    user_confirmed: t.statusUserConfirmed,
+    cancelled: t.statusCancelled,
+  }
+
+  const STATUS_COLORS: Record<string, string> = {
+    pending: 'bg-pink-pale text-pink-deep',
+    provider_confirmed: 'bg-green-100 text-green-700',
+    user_confirmed: 'bg-green-100 text-green-700',
+    cancelled: 'bg-beige text-textMuted',
+  }
+
   useEffect(() => {
     const channel = supabase
       .channel('appointments-live')
@@ -36,11 +37,10 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
         (payload) => {
           const appt = payload.new as Appointment
           setAppointments((prev) => [appt, ...prev])
-          toast('תור חדש נקבע!', { icon: '📅' })
-          // Browser notification
+          toast(t.newApptToast, { icon: '📅' })
           if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification('SIEL — תור חדש', {
-              body: `${formatDate(appt.slot_start)} בשעה ${formatTime(appt.slot_start)}`,
+            new Notification(t.newApptNotifTitle, {
+              body: `${formatDate(appt.slot_start)} ${formatTime(appt.slot_start)}`,
               icon: '/favicon.ico',
             })
           } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
@@ -51,7 +51,7 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [supabase, providerId])
+  }, [supabase, providerId, t])
 
   async function respond(appointmentId: string, action: 'confirm' | 'cancel') {
     setLoadingId(appointmentId)
@@ -61,7 +61,7 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointmentId, action }),
       })
-      if (!res.ok) throw new Error('שגיאה')
+      if (!res.ok) throw new Error(t.error)
       setAppointments((prev) =>
         prev.map((a) =>
           a.id === appointmentId
@@ -69,9 +69,9 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
             : a
         )
       )
-      toast.success(action === 'confirm' ? 'התור אושר' : 'התור בוטל')
+      toast.success(action === 'confirm' ? t.apptConfirmed : t.apptCancelled)
     } catch {
-      toast.error('שגיאה. נסי שוב.')
+      toast.error(t.errorTryAgain)
     } finally {
       setLoadingId(null)
     }
@@ -100,14 +100,14 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
               disabled={loadingId === appt.id}
               className="flex-1 flex items-center justify-center gap-2 bg-oak text-white text-sm font-medium py-2 rounded-xl hover:opacity-90 disabled:opacity-60"
             >
-              <Check size={14} /> אשרי תור
+              <Check size={14} /> {t.confirmAppt}
             </button>
             <button
               onClick={() => respond(appt.id, 'cancel')}
               disabled={loadingId === appt.id}
               className="flex items-center justify-center gap-2 border border-beige text-textMuted text-sm font-medium px-4 py-2 rounded-xl hover:bg-cream disabled:opacity-60"
             >
-              <X size={14} /> בטלי
+              <X size={14} /> {t.cancelAppt}
             </button>
           </div>
         )}
@@ -120,18 +120,18 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
       {pending.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-3">
-            ממתינות לאישור ({pending.length})
+            {t.pendingCount} ({pending.length})
           </h2>
           <div className="space-y-3">{pending.map((a) => <AppCard key={a.id} appt={a} />)}</div>
         </section>
       )}
       {rest.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-3">שאר התורים</h2>
+          <h2 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-3">{t.otherAppointments}</h2>
           <div className="space-y-3">{rest.map((a) => <AppCard key={a.id} appt={a} />)}</div>
         </section>
       )}
-      {!appointments.length && <p className="text-textMuted">אין תורים עדיין.</p>}
+      {!appointments.length && <p className="text-textMuted">{t.noAppointments}</p>}
     </div>
   )
 }

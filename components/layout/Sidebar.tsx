@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types'
+import { useLanguage } from '@/contexts/LanguageContext'
 import {
   MessageSquare,
   User,
@@ -15,24 +15,26 @@ import {
   LogOut,
 } from 'lucide-react'
 
-const RABBI_LINKS = [
-  { href: '/rabbi', label: 'דשבורד', icon: LayoutDashboard },
-  { href: '/rabbi/inbox', label: 'תיבת הודעות', icon: MessageSquare },
-  { href: '/rabbi/profile', label: 'פרופיל', icon: User },
-]
-
-const BEAUTY_LINKS = [
-  { href: '/beauty', label: 'דשבורד', icon: LayoutDashboard },
-  { href: '/beauty/appointments', label: 'תורים', icon: CheckSquare },
-  { href: '/beauty/availability', label: 'זמינות', icon: Calendar },
-  { href: '/beauty/portfolio', label: 'פורטפוליו', icon: Image },
-  { href: '/beauty/profile', label: 'פרופיל', icon: User },
-]
-
 export function Sidebar({ role }: { role: UserRole }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { lang, t, setLang } = useLanguage()
+
+  const RABBI_LINKS = [
+    { href: '/rabbi', label: t.dashboard, icon: LayoutDashboard },
+    { href: '/rabbi/inbox', label: t.inbox, icon: MessageSquare },
+    { href: '/rabbi/profile', label: t.profile, icon: User },
+  ]
+
+  const BEAUTY_LINKS = [
+    { href: '/beauty', label: t.dashboard, icon: LayoutDashboard },
+    { href: '/beauty/appointments', label: t.appointments, icon: CheckSquare },
+    { href: '/beauty/availability', label: t.availability, icon: Calendar },
+    { href: '/beauty/portfolio', label: t.portfolio, icon: Image },
+    { href: '/beauty/profile', label: t.profile, icon: User },
+  ]
+
   const links = role === 'rabbi' ? RABBI_LINKS : BEAUTY_LINKS
   const accentColor = role === 'rabbi' ? 'bg-oak' : 'bg-pink'
 
@@ -41,13 +43,19 @@ export function Sidebar({ role }: { role: UserRole }) {
     router.push('/')
   }
 
+  function toggleLang() {
+    const next = lang === 'he' ? 'en' : 'he'
+    setLang(next)
+    router.refresh()
+  }
+
   return (
     <aside className="w-64 bg-white border-r border-beige flex flex-col h-screen fixed top-0 left-0">
       {/* Logo */}
       <div className="p-6 border-b border-beige">
         <span className="text-2xl font-bold tracking-widest text-oak">SIEL</span>
         <p className="text-xs text-textMuted mt-1">
-          {role === 'rabbi' ? 'ניהול רב' : 'ניהול בעלת מקצוע'}
+          {role === 'rabbi' ? t.rabbiManagement : t.beautyManagement}
         </p>
       </div>
 
@@ -66,20 +74,27 @@ export function Sidebar({ role }: { role: UserRole }) {
               }`}
             >
               <Icon size={16} />
-              <span dir="rtl">{label}</span>
+              <span>{label}</span>
             </Link>
           )
         })}
       </nav>
 
-      {/* Sign out */}
-      <div className="p-4 border-t border-beige">
+      {/* Language toggle + Sign out */}
+      <div className="p-4 border-t border-beige space-y-1">
+        <button
+          onClick={toggleLang}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
+        >
+          <span className="text-base">{lang === 'he' ? '🇬🇧' : '🇮🇱'}</span>
+          <span>{lang === 'he' ? 'English' : 'עברית'}</span>
+        </button>
         <button
           onClick={signOut}
           className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
         >
           <LogOut size={16} />
-          <span>יציאה</span>
+          <span>{t.signOut}</span>
         </button>
       </div>
     </aside>

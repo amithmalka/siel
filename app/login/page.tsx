@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 function LoginForm() {
   const router = useRouter()
@@ -14,10 +15,11 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLanguage()
 
   const supabase = createClient()
 
-  const roleLabel = role === 'rabbi' ? 'רב / מורה הוראה' : 'בעלת מקצוע'
+  const roleLabel = role === 'rabbi' ? t.rabbiRole : t.beautyRole
   const roleColor = role === 'rabbi' ? 'bg-oak' : 'bg-pink'
 
   async function handleSubmit(e: React.FormEvent) {
@@ -34,7 +36,7 @@ function LoginForm() {
         router.push(`/onboarding?role=${role}`)
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'שגיאה. נסי שוב.')
+      toast.error(err instanceof Error ? err.message : t.errorTryAgain)
     } finally {
       setLoading(false)
     }
@@ -44,32 +46,31 @@ function LoginForm() {
     <main className="min-h-screen bg-cream flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <Link href="/" className="text-textMuted text-sm hover:text-textMain flex items-center gap-1 mb-8">
-          ← חזרה
+          {t.back}
         </Link>
 
         <div className="bg-white border border-beige rounded-2xl p-8 shadow-sm">
           <div className={`w-10 h-10 ${roleColor} rounded-full mb-6`} />
-          <h1 className="text-2xl font-semibold text-textMain mb-1">כניסה</h1>
+          <h1 className="text-2xl font-semibold text-textMain mb-1">{t.login}</h1>
           <p className="text-textMuted text-sm mb-8">{roleLabel}</p>
 
-          {/* Tabs */}
           <div className="flex bg-cream rounded-xl p-1 mb-6">
-            {(['signin', 'signup'] as const).map((t) => (
+            {(['signin', 'signup'] as const).map((tabKey) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tab === t ? 'bg-white text-textMain shadow-sm' : 'text-textMuted'
+                  tab === tabKey ? 'bg-white text-textMain shadow-sm' : 'text-textMuted'
                 }`}
               >
-                {t === 'signin' ? 'כניסה' : 'הרשמה'}
+                {tabKey === 'signin' ? t.login : t.signup}
               </button>
             ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-textLight mb-1.5">אימייל</label>
+              <label className="block text-sm font-medium text-textLight mb-1.5">{t.email}</label>
               <input
                 type="email"
                 value={email}
@@ -81,7 +82,7 @@ function LoginForm() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-textLight mb-1.5">סיסמה</label>
+              <label className="block text-sm font-medium text-textLight mb-1.5">{t.password}</label>
               <input
                 type="password"
                 value={password}
@@ -98,7 +99,7 @@ function LoginForm() {
               disabled={loading}
               className={`w-full ${roleColor} text-white font-medium py-3 rounded-xl text-sm hover:opacity-90 transition-opacity disabled:opacity-60 mt-2`}
             >
-              {loading ? 'טוענת...' : tab === 'signin' ? 'כניסה' : 'הרשמה'}
+              {loading ? t.loading : tab === 'signin' ? t.login : t.signup}
             </button>
           </form>
         </div>

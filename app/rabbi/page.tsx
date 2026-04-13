@@ -1,8 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { getT, type Lang } from '@/lib/i18n/translations'
 
 export default async function RabbiDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const lang = ((await cookies()).get('siel-lang')?.value ?? 'he') as Lang
+  const t = getT(lang)
 
   const { data: boUser } = await supabase
     .from('backoffice_users')
@@ -22,19 +26,19 @@ export default async function RabbiDashboard() {
     .eq('rabbi_id', boUser?.linked_entity_id ?? '')
 
   return (
-    <div dir="rtl">
-      <h1 className="text-3xl font-bold text-textMain mb-1">שלום, {rabbi?.name ?? 'רב'}</h1>
+    <div dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      <h1 className="text-3xl font-bold text-textMain mb-1">{t.hello}, {rabbi?.name ?? t.rabbi}</h1>
       <p className="text-textMuted mb-8">{rabbi?.specialty}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
         <div className="bg-white border border-beige rounded-2xl p-6">
-          <p className="text-textMuted text-sm mb-2">שיחות פעילות</p>
+          <p className="text-textMuted text-sm mb-2">{t.activeConversations}</p>
           <p className="text-4xl font-bold text-oak">{totalConvs ?? 0}</p>
         </div>
         <div className="bg-white border border-beige rounded-2xl p-6">
-          <p className="text-textMuted text-sm mb-2">תיבת הודעות</p>
+          <p className="text-textMuted text-sm mb-2">{t.inbox}</p>
           <a href="/rabbi/inbox" className="text-pink text-sm font-medium hover:underline">
-            צפי בהודעות ←
+            {t.viewMessages}
           </a>
         </div>
       </div>
