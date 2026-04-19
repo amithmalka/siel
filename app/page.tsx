@@ -57,6 +57,17 @@ export default function LandingPage() {
         </div>
       </Link>
 
+      <Link href="/about-app" className="w-full max-w-2xl mt-3 block">
+        <div className="bg-white border border-beige rounded-2xl px-6 py-4 text-center hover:border-oak hover:shadow-sm transition-all duration-200">
+          <p className="text-sm font-medium text-oak">
+            {lang === 'he' ? '📱 הסבר על אפליקציית SIEL' : '📱 About the SIEL app'}
+          </p>
+          <p className="text-xs text-textMuted mt-1">
+            {lang === 'he' ? 'מה האפליקציה עושה · מדריך לבודקים' : 'What the app does · Guide for testers'}
+          </p>
+        </div>
+      </Link>
+
       <p className="mt-10 text-textMuted text-xs">
         SIEL © {new Date().getFullYear()} · {t.allRightsReserved}
       </p>
