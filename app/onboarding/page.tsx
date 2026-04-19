@@ -85,13 +85,27 @@ function OnboardingForm() {
               <label className="block text-sm font-medium text-textLight mb-1.5">
                 {role === 'rabbi' ? t.specialty : t.categoryHint}
               </label>
-              <input
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-                required
-                className="w-full border border-beige rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink bg-cream"
-                dir="rtl"
-              />
+              {role === 'rabbi' ? (
+                <select
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  required
+                  className="w-full border border-beige rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink bg-cream"
+                  dir="rtl"
+                >
+                  <option value="">בחר התמחות</option>
+                  <option value="sephardi">ספרדי (מרן)</option>
+                  <option value="ashkenazi">אשכנזי (רמ״א)</option>
+                </select>
+              ) : (
+                <input
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  required
+                  className="w-full border border-beige rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink bg-cream"
+                  dir="rtl"
+                />
+              )}
             </div>
             {role === 'beauty_pro' && (
               <div>

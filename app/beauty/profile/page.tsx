@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { deleteAccount } from '@/app/account/actions'
 
 const CATEGORIES = ['ציפורניים גל', 'פדיקור', 'עיצוב שיער', 'איפור', 'הסרת שיער', 'טיפול פנים', 'עיסוי']
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 export default function BeautyProfilePage() {
+  const router = useRouter()
+  const [userId, setUserId] = useState('')
   const [providerId, setProviderId] = useState('')
   const [name, setName] = useState('')
   const [specialty, setSpecialty] = useState('')
@@ -26,6 +30,7 @@ export default function BeautyProfilePage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setUserId(user.id)
       const { data: bo } = await supabase.from('backoffice_users').select('linked_entity_id').eq('id', user.id).single()
       if (!bo) return
       setProviderId(bo.linked_entity_id)
@@ -162,6 +167,23 @@ export default function BeautyProfilePage() {
           {loading ? 'שומר...' : 'שמירה'}
         </button>
       </form>
+
+      <div className="mt-8 border-t border-beige pt-6">
+        <h2 className="text-sm font-semibold text-textMuted mb-2">מחיקת חשבון</h2>
+        <p className="text-xs text-textMuted mb-4">מחיקת החשבון תסיר אותך מהחיפוש באפליקציה. תוכלי להצטרף מחדש בעתיד.</p>
+        <button
+          type="button"
+          onClick={async () => {
+            if (!confirm('את בטוחה שתרצי למחוק את החשבון? לא ניתן לבטל פעולה זו.')) return
+            await deleteAccount(userId, 'beauty_pro')
+            await supabase.auth.signOut()
+            router.push('/')
+          }}
+          className="w-full border border-red-200 text-red-500 rounded-xl py-2.5 text-sm hover:bg-red-50 transition-colors"
+        >
+          מחיקת חשבון
+        </button>
+      </div>
     </div>
   )
 }

@@ -62,13 +62,23 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
         body: JSON.stringify({ appointmentId, action }),
       })
       if (!res.ok) throw new Error(t.error)
-      setAppointments((prev) =>
-        prev.map((a) =>
-          a.id === appointmentId
-            ? { ...a, status: action === 'confirm' ? 'provider_confirmed' : 'cancelled' }
-            : a
-        )
-      )
+
+      setAppointments((prev) => {
+        const confirmed = prev.find((a) => a.id === appointmentId)
+        return prev.map((a) => {
+          if (a.id === appointmentId)
+            return { ...a, status: action === 'confirm' ? 'provider_confirmed' : 'cancelled' }
+          if (
+            action === 'confirm' &&
+            confirmed?.service_name &&
+            a.service_name === confirmed.service_name &&
+            a.user_id === confirmed.user_id &&
+            a.status === 'pending'
+          )
+            return { ...a, status: 'cancelled' as const }
+          return a
+        })
+      })
       toast.success(action === 'confirm' ? t.apptConfirmed : t.apptCancelled)
     } catch {
       toast.error(t.errorTryAgain)
@@ -92,6 +102,11 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
             {STATUS_LABELS[appt.status]}
           </span>
         </div>
+        {appt.service_name && (
+          <p className="text-xs font-medium text-pink bg-pink/10 rounded-full px-3 py-1 inline-block mb-2">
+            {appt.service_name}{appt.service_price ? ` · ₪${appt.service_price}` : ''}
+          </p>
+        )}
         {appt.note && <p className="text-sm text-textLight bg-cream rounded-xl px-4 py-2 mb-3">{appt.note}</p>}
         {appt.status === 'pending' && (
           <div className="flex gap-2">

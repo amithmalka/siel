@@ -13,6 +13,7 @@ import {
   Calendar,
   CheckSquare,
   LogOut,
+  Scissors,
 } from 'lucide-react'
 
 export function Sidebar({ role }: { role: UserRole }) {
@@ -32,6 +33,7 @@ export function Sidebar({ role }: { role: UserRole }) {
     { href: '/beauty/appointments', label: t.appointments, icon: CheckSquare },
     { href: '/beauty/availability', label: t.availability, icon: Calendar },
     { href: '/beauty/portfolio', label: t.portfolio, icon: Image },
+    { href: '/beauty/services', label: t.services, icon: Scissors },
     { href: '/beauty/profile', label: t.profile, icon: User },
   ]
 

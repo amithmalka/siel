@@ -44,10 +44,22 @@ export async function POST(request: NextRequest) {
     .from('appointments')
     .update(update)
     .eq('id', appointmentId)
-    .select('user_id, slot_start')
+    .select('user_id, slot_start, service_name, provider_id')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-cancel duplicate pending appointments for same user + same service
+  if (action === 'confirm' && updatedAppt?.service_name) {
+    await adminSupabase
+      .from('appointments')
+      .update({ status: 'cancelled' })
+      .eq('user_id', updatedAppt.user_id)
+      .eq('provider_id', updatedAppt.provider_id)
+      .eq('service_name', updatedAppt.service_name)
+      .eq('status', 'pending')
+      .neq('id', appointmentId)
+  }
 
   // Send push notification to user if confirming
   if (action === 'confirm' && updatedAppt) {

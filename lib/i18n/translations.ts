@@ -44,6 +44,7 @@ export const translations = {
     appointments: 'תורים',
     availability: 'זמינות',
     portfolio: 'פורטפוליו',
+    services: 'שירותים ומחירים',
     signOut: 'יציאה',
     // Beauty Dashboard
     hello: 'שלום',
@@ -119,6 +120,7 @@ export const translations = {
     appointments: 'Appointments',
     availability: 'Availability',
     portfolio: 'Portfolio',
+    services: 'Services & Prices',
     signOut: 'Sign Out',
     // Beauty Dashboard
     hello: 'Hello',

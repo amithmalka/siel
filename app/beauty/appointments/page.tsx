@@ -3,6 +3,8 @@ import { AppointmentList } from '@/components/beauty/AppointmentList'
 import { cookies } from 'next/headers'
 import { getT, type Lang } from '@/lib/i18n/translations'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AppointmentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -22,6 +22,8 @@ export interface Appointment {
   provider_confirmed_at: string | null
   user_confirmed_at: string | null
   note: string
+  service_name: string | null
+  service_price: number | null
   created_at: string
 }
 
