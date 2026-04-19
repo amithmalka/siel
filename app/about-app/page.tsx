@@ -67,7 +67,8 @@ export default function AboutAppPage() {
                 <div>
                   <h3 className="font-bold text-textMain text-base mb-1">התראות חכמות</h3>
                   <p className="text-sm text-textMuted leading-relaxed">
-                    קבלי תזכורת לפני מועד הווסת הצפוי, אישור תור ממטפלת, ותגובה מרב —
+                    קבלי תזכורות חכמות: מועד הווסת הצפוי, ימי בדיקות, ספירת שבעה נקיים,
+                    מועד הטבילה — וכן אישור תור ממטפלת ותגובה מרב.
                     כך שלא תפספסי דבר.
                   </p>
                 </div>
@@ -105,8 +106,8 @@ export default function AboutAppPage() {
             אם קיבלת גישה לבדיקה — נשמח לשמוע מה עובד, מה פחות, ומה חסר.
             אפשר לשלוח משוב ל:
           </p>
-          <a href="mailto:siel.app.contact@gmail.com" className="text-pink text-sm font-medium mt-2 inline-block hover:underline">
-            siel.app.contact@gmail.com
+          <a href="mailto:amithmalka1@gmail.com" className="text-pink text-sm font-medium mt-2 inline-block hover:underline">
+            amithmalka1@gmail.com
           </a>
         </div>
 
