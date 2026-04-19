@@ -47,15 +47,15 @@ export default async function RabbiDashboard() {
         </div>
         <div className="bg-white border border-beige rounded-2xl p-6">
           <p className="text-textMuted text-sm mb-2">השיחות שלי</p>
-          <p className="text-4xl font-bold text-oak">{myConversations.length}</p>
+          <p className="text-4xl font-bold text-oak">{myConversations?.length ?? 0}</p>
         </div>
       </div>
 
-      {myConversations.length > 0 && (
+      {(myConversations?.length ?? 0) > 0 && (
         <div className="max-w-2xl">
           <h2 className="text-lg font-semibold text-textMain mb-4">השיחות שלי</h2>
           <div className="space-y-3">
-            {myConversations.map((conv) => (
+            {myConversations!.map((conv) => (
               <Link
                 key={conv.id}
                 href={`/rabbi/inbox/${conv.id}`}
