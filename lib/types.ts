@@ -1,4 +1,4 @@
-export type UserRole = 'rabbi' | 'beauty_pro'
+export type UserRole = 'rabbi' | 'beauty_pro' | 'admin'
 export type SubscriptionStatus = 'active' | 'inactive' | 'trialing' | 'past_due'
 export type AppointmentStatus = 'pending' | 'provider_confirmed' | 'user_confirmed' | 'cancelled'
 

@@ -52,14 +52,17 @@ export async function proxy(request: NextRequest) {
 
   // Role guards
   if (boUser) {
-    if (pathname.startsWith('/rabbi') && boUser.role !== 'rabbi') {
+    if (pathname.startsWith('/admin') && boUser.role !== 'admin') {
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
+    if (pathname.startsWith('/rabbi') && boUser.role !== 'rabbi' && boUser.role !== 'admin') {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
     if (pathname.startsWith('/beauty')) {
-      if (boUser.role !== 'beauty_pro') {
+      if (boUser.role !== 'beauty_pro' && boUser.role !== 'admin') {
         return NextResponse.redirect(new URL('/unauthorized', request.url))
       }
-      if (boUser.subscription_status !== 'active' && boUser.subscription_status !== 'trialing') {
+      if (boUser.role === 'beauty_pro' && boUser.subscription_status !== 'active' && boUser.subscription_status !== 'trialing') {
         return NextResponse.redirect(new URL('/onboarding?step=payment', request.url))
       }
     }
