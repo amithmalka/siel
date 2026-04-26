@@ -1,5 +1,6 @@
 import { getAdminSupabase } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import PendingApprovals from '@/components/admin/PendingApprovals'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,28 +10,30 @@ export default async function AdminDashboard() {
   const [
     { count: usersCount },
     { count: providersCount },
-    { count: inactiveCount },
     { count: rabbisCount },
     { count: pendingAppointments },
     { count: deletionRequests },
     { data: recentDeletions },
+    { data: pendingProviders },
+    { data: pendingRabbis },
   ] = await Promise.all([
     admin.from('profiles').select('*', { count: 'exact', head: true }),
     admin.from('service_providers').select('*', { count: 'exact', head: true }).eq('is_active', true),
-    admin.from('service_providers').select('*', { count: 'exact', head: true }).eq('is_active', false),
-    admin.from('rabbis').select('*', { count: 'exact', head: true }),
+    admin.from('rabbis').select('*', { count: 'exact', head: true }).eq('is_available', true),
     admin.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     admin.from('deletion_requests').select('*', { count: 'exact', head: true }).is('handled_at', null),
     admin.from('deletion_requests').select('*').is('handled_at', null).order('requested_at', { ascending: false }).limit(5),
+    admin.from('service_providers').select('id, name, specialty, city').eq('is_active', false).not('user_id', 'is', null),
+    admin.from('rabbis').select('id, name, specialty').eq('is_available', false).not('user_id', 'is', null),
   ])
 
   const stats = [
     { label: 'משתמשות באפליקציה', value: usersCount ?? 0, icon: '👩', href: null },
     { label: 'בעלות עסק פעילות', value: providersCount ?? 0, icon: '💅', href: '/admin/providers' },
-    { label: 'בעלות עסק לא פעילות', value: inactiveCount ?? 0, icon: '⚠️', href: '/admin/providers' },
-    { label: 'רבנים', value: rabbisCount ?? 0, icon: '✡', href: '/admin/rabbis' },
+    { label: 'רבנים פעילים', value: rabbisCount ?? 0, icon: '✡', href: '/admin/rabbis' },
     { label: 'תורים ממתינים', value: pendingAppointments ?? 0, icon: '📅', href: '/admin/appointments' },
     { label: 'בקשות מחיקה פתוחות', value: deletionRequests ?? 0, icon: '🗑️', href: '/admin/deletion-requests' },
+    { label: 'ממתינים לאישור', value: (pendingProviders?.length ?? 0) + (pendingRabbis?.length ?? 0), icon: '⏳', href: null },
   ]
 
   return (
@@ -41,6 +44,12 @@ export default async function AdminDashboard() {
           <h1 className="text-3xl font-bold text-oak tracking-wide">SIEL · ניהול מערכת</h1>
           <p className="text-sm text-textMuted mt-1">גישת אדמין — כל הנתונים</p>
         </div>
+
+        {/* Pending approvals — shown first if any */}
+        <PendingApprovals
+          providers={pendingProviders ?? []}
+          rabbis={pendingRabbis ?? []}
+        />
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
@@ -80,6 +89,10 @@ export default async function AdminDashboard() {
           <Link href="/admin/appointments" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">📅 ניהול תורים</div>
             <p className="text-sm text-textMuted">צפה בתורים ממתינים, אשר או בטל.</p>
+          </Link>
+          <Link href="/admin/forum" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+            <div className="font-bold text-textMain mb-1">💬 ניהול קהילה</div>
+            <p className="text-sm text-textMuted">צפה במחק פוסטים בפורום הקהילה.</p>
           </Link>
         </div>
 

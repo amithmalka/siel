@@ -14,6 +14,10 @@ import {
   CheckSquare,
   LogOut,
   Scissors,
+  Users,
+  MessageCircle,
+  Trash2,
+  ShieldCheck,
 } from 'lucide-react'
 
 export function Sidebar({ role }: { role: UserRole }) {
@@ -37,8 +41,19 @@ export function Sidebar({ role }: { role: UserRole }) {
     { href: '/beauty/profile', label: t.profile, icon: User },
   ]
 
-  const links = role === 'rabbi' ? RABBI_LINKS : BEAUTY_LINKS
-  const accentColor = role === 'rabbi' ? 'bg-oak' : 'bg-pink'
+  const ADMIN_LINKS = [
+    { href: '/admin', label: 'לוח בקרה', icon: ShieldCheck },
+    { href: '/admin/providers', label: 'ניהול עסקים', icon: Scissors },
+    { href: '/admin/rabbis', label: 'ניהול רבנים', icon: Users },
+    { href: '/rabbi/inbox', label: 'הודעות רבנים', icon: MessageSquare },
+    { href: '/admin/appointments', label: 'ניהול תורים', icon: Calendar },
+    { href: '/admin/forum', label: 'קהילה', icon: MessageCircle },
+    { href: '/admin/deletion-requests', label: 'בקשות מחיקה', icon: Trash2 },
+    { href: '/beauty', label: 'הדשבורד שלי', icon: LayoutDashboard },
+  ]
+
+  const links = role === 'rabbi' ? RABBI_LINKS : role === 'admin' ? ADMIN_LINKS : BEAUTY_LINKS
+  const accentColor = role === 'rabbi' ? 'bg-oak' : role === 'admin' ? 'bg-purple-600' : 'bg-pink'
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -57,7 +72,7 @@ export function Sidebar({ role }: { role: UserRole }) {
       <div className="p-6 border-b border-beige">
         <span className="text-2xl font-bold tracking-widest text-oak">SIEL</span>
         <p className="text-xs text-textMuted mt-1">
-          {role === 'rabbi' ? t.rabbiManagement : t.beautyManagement}
+          {role === 'rabbi' ? t.rabbiManagement : role === 'admin' ? 'ניהול מערכת' : t.beautyManagement}
         </p>
       </div>
 

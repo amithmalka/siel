@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       // Insert rabbi row
       const { data: rabbiRow, error: rabbiErr } = await adminSupabase
         .from('rabbis')
-        .insert({ name, specialty, is_available: true, user_id: user.id })
+        .insert({ name, specialty, is_available: false, user_id: user.id })
         .select('id')
         .single()
       if (rabbiErr) return NextResponse.json({ error: rabbiErr.message }, { status: 400 })
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     const fullInsert = await adminSupabase
       .from('service_providers')
-      .insert({ name, specialty, city, is_available: true, is_active: true, portfolio_paths: [], user_id: user.id, latitude: 0, longitude: 0 })
+      .insert({ name, specialty, city, is_available: true, is_active: false, portfolio_paths: [], user_id: user.id, latitude: 0, longitude: 0 })
       .select('id')
       .single()
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       // Fallback: insert only confirmed base columns
       const baseInsert = await adminSupabase
         .from('service_providers')
-        .insert({ name, category: 'beauty', is_active: true, portfolio_paths: [], user_id: user.id, latitude: 0, longitude: 0 })
+        .insert({ name, category: 'beauty', is_active: false, portfolio_paths: [], user_id: user.id, latitude: 0, longitude: 0 })
         .select('id')
         .single()
       if (baseInsert.error) return NextResponse.json({ error: baseInsert.error.message }, { status: 400 })
