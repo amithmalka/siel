@@ -20,6 +20,22 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { id } = await request.json()
   const admin = getAdminSupabase()
+
+  // Get the auth user id directly from the rabbis row
+  const { data: rabbi } = await admin
+    .from('rabbis')
+    .select('user_id')
+    .eq('id', id)
+    .maybeSingle()
+
+  // Delete DB rows
   await admin.from('rabbis').delete().eq('id', id)
+
+  if (rabbi?.user_id) {
+    await admin.from('backoffice_users').delete().eq('id', rabbi.user_id)
+    // Delete from Supabase Auth — removes login access permanently
+    await admin.auth.admin.deleteUser(rabbi.user_id)
+  }
+
   return NextResponse.json({ success: true })
 }

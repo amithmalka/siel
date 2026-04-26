@@ -40,6 +40,24 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { id } = await request.json()
   const admin = getAdminSupabase()
+
+  // Find the auth user id via backoffice_users
+  const { data: bu } = await admin
+    .from('backoffice_users')
+    .select('id')
+    .eq('linked_entity_id', id)
+    .maybeSingle()
+
+  // Delete DB rows (FK cascades will remove related data)
   await admin.from('service_providers').delete().eq('id', id)
+
+  if (bu?.id) {
+    await admin.from('backoffice_users').delete().eq('id', bu.id)
+    // Delete from Supabase Auth — removes login access permanently
+    await admin.auth.admin.deleteUser(bu.id)
+    // TODO: when Stripe is added — cancel subscription here:
+    // await stripe.subscriptions.cancel(stripeSubscriptionId)
+  }
+
   return NextResponse.json({ success: true })
 }
