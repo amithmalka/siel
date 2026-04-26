@@ -1,0 +1,25 @@
+{
+  "name": "SIEL Admin",
+  "short_name": "SIEL Admin",
+  "description": "מערכת ניהול SIEL",
+  "start_url": "/admin",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#C4948E",
+  "background_color": "#FAF8F3",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}

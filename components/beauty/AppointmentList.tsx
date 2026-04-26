@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Appointment } from '@/lib/types'
 import { formatDate, formatTime } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -8,11 +8,13 @@ import toast from 'react-hot-toast'
 import { Check, X } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
 
-export function AppointmentList({ appointments: initial, providerId }: { appointments: Appointment[]; providerId: string }) {
-  const [appointments, setAppointments] = useState(initial)
+export function AppointmentList() {
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loadingData, setLoadingData] = useState(true)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const supabase = createClient()
   const { t } = useLanguage()
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   const STATUS_LABELS: Record<string, string> = {
     pending: t.statusPending,
@@ -29,29 +31,33 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
   }
 
   useEffect(() => {
-    const channel = supabase
-      .channel('appointments-live')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'appointments', filter: `provider_id=eq.${providerId}` },
-        (payload) => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: bo } = await supabase.from('backoffice_users').select('linked_entity_id').eq('id', user.id).single()
+      if (!bo) return
+      const pid = bo.linked_entity_id
+      const { data } = await supabase.from('appointments').select('*').eq('provider_id', pid).order('slot_start', { ascending: true })
+      setAppointments(data ?? [])
+      setLoadingData(false)
+
+      if (channelRef.current) supabase.removeChannel(channelRef.current)
+      channelRef.current = supabase
+        .channel('appointments-live')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'appointments', filter: `provider_id=eq.${pid}` }, (payload) => {
           const appt = payload.new as Appointment
           setAppointments((prev) => [appt, ...prev])
           toast(t.newApptToast, { icon: '📅' })
           if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification(t.newApptNotifTitle, {
-              body: `${formatDate(appt.slot_start)} ${formatTime(appt.slot_start)}`,
-              icon: '/favicon.ico',
-            })
-          } else if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission()
+            new Notification(t.newApptNotifTitle, { body: `${formatDate(appt.slot_start)} ${formatTime(appt.slot_start)}`, icon: '/favicon.ico' })
           }
-        },
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [supabase, providerId, t])
+        })
+        .subscribe()
+    }
+    load()
+    return () => { if (channelRef.current) supabase.removeChannel(channelRef.current) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function respond(appointmentId: string, action: 'confirm' | 'cancel') {
     setLoadingId(appointmentId)
@@ -68,13 +74,7 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
         return prev.map((a) => {
           if (a.id === appointmentId)
             return { ...a, status: action === 'confirm' ? 'provider_confirmed' : 'cancelled' }
-          if (
-            action === 'confirm' &&
-            confirmed?.service_name &&
-            a.service_name === confirmed.service_name &&
-            a.user_id === confirmed.user_id &&
-            a.status === 'pending'
-          )
+          if (action === 'confirm' && confirmed?.service_name && a.service_name === confirmed.service_name && a.user_id === confirmed.user_id && a.status === 'pending')
             return { ...a, status: 'cancelled' as const }
           return a
         })
@@ -85,6 +85,22 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
     } finally {
       setLoadingId(null)
     }
+  }
+
+  if (loadingData) {
+    return (
+      <div className="max-w-xl space-y-3 animate-pulse">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white border border-beige rounded-2xl p-5">
+            <div className="flex justify-between mb-3">
+              <div className="space-y-2"><div className="h-4 w-28 bg-beige rounded" /><div className="h-3 w-20 bg-beige rounded" /></div>
+              <div className="h-6 w-20 bg-beige rounded-full" />
+            </div>
+            <div className="h-10 w-full bg-beige rounded-xl" />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   const pending = appointments.filter((a) => a.status === 'pending')
@@ -110,18 +126,12 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
         {appt.note && <p className="text-sm text-textLight bg-cream rounded-xl px-4 py-2 mb-3">{appt.note}</p>}
         {appt.status === 'pending' && (
           <div className="flex gap-2">
-            <button
-              onClick={() => respond(appt.id, 'confirm')}
-              disabled={loadingId === appt.id}
-              className="flex-1 flex items-center justify-center gap-2 bg-oak text-white text-sm font-medium py-2 rounded-xl hover:opacity-90 disabled:opacity-60"
-            >
+            <button onClick={() => respond(appt.id, 'confirm')} disabled={loadingId === appt.id}
+              className="flex-1 flex items-center justify-center gap-2 bg-oak text-white text-sm font-medium py-2.5 rounded-xl hover:opacity-90 disabled:opacity-60">
               <Check size={14} /> {t.confirmAppt}
             </button>
-            <button
-              onClick={() => respond(appt.id, 'cancel')}
-              disabled={loadingId === appt.id}
-              className="flex items-center justify-center gap-2 border border-beige text-textMuted text-sm font-medium px-4 py-2 rounded-xl hover:bg-cream disabled:opacity-60"
-            >
+            <button onClick={() => respond(appt.id, 'cancel')} disabled={loadingId === appt.id}
+              className="flex items-center justify-center gap-2 border border-beige text-textMuted text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-cream disabled:opacity-60">
               <X size={14} /> {t.cancelAppt}
             </button>
           </div>
@@ -134,9 +144,7 @@ export function AppointmentList({ appointments: initial, providerId }: { appoint
     <div className="max-w-xl space-y-6">
       {pending.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-3">
-            {t.pendingCount} ({pending.length})
-          </h2>
+          <h2 className="text-sm font-semibold text-textMuted uppercase tracking-wider mb-3">{t.pendingCount} ({pending.length})</h2>
           <div className="space-y-3">{pending.map((a) => <AppCard key={a.id} appt={a} />)}</div>
         </section>
       )}

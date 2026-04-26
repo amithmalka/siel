@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   role: 'beauty_pro' | 'rabbi'
-  entityId: string  // provider_id or rabbi_id
 }
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''
@@ -18,13 +18,24 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   return bytes
 }
 
-export default function PushSubscriber({ role, entityId }: Props) {
+export default function PushSubscriber({ role }: Props) {
   useEffect(() => {
     const key = VAPID_KEY
     if (!key || !('serviceWorker' in navigator) || !('PushManager' in window)) return
 
     async function subscribe() {
       try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: bu } = await supabase
+          .from('backoffice_users')
+          .select('linked_entity_id')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (!bu?.linked_entity_id) return
+        const entityId = bu.linked_entity_id
+
         const reg = await navigator.serviceWorker.register('/sw.js')
         await navigator.serviceWorker.ready
 
@@ -55,7 +66,7 @@ export default function PushSubscriber({ role, entityId }: Props) {
     }
 
     subscribe()
-  }, [role, entityId])
+  }, [role])
 
   return null
 }

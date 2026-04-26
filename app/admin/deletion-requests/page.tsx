@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface DeletionRequest {
   id: string
@@ -19,6 +19,7 @@ const DATA_LABELS: Record<string, string> = {
 }
 
 export default function AdminDeletionRequestsPage() {
+  const router = useRouter()
   const [requests, setRequests] = useState<DeletionRequest[]>([])
   const [showHandled, setShowHandled] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -46,10 +47,10 @@ export default function AdminDeletionRequestsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin" className="text-textMuted text-sm hover:text-pink">← חזרה</Link>
+          <button onClick={() => router.push("/admin")} className="text-textMuted text-sm hover:text-pink px-2 py-1">← חזרה</button>
           <h1 className="text-2xl font-bold text-oak">בקשות מחיקת נתונים</h1>
         </div>
 

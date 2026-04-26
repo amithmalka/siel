@@ -37,7 +37,7 @@ export default async function AdminDashboard() {
   ]
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-5xl mx-auto">
 
         <div className="mb-8">
@@ -74,23 +74,23 @@ export default async function AdminDashboard() {
 
         {/* Quick nav */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Link href="/admin/providers" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+          <Link href="/admin/providers" className="bg-white border border-beige rounded-2xl p-4 sm:p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">💅 ניהול בעלות עסק</div>
             <p className="text-sm text-textMuted">הפעל / השבת / מחק ספקיות. צפה בסטטוס שדות חובה.</p>
           </Link>
-          <Link href="/admin/rabbis" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+          <Link href="/admin/rabbis" className="bg-white border border-beige rounded-2xl p-4 sm:p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">✡ ניהול רבנים</div>
             <p className="text-sm text-textMuted">הוסף / הסר / עדכן זמינות רבנים.</p>
           </Link>
-          <Link href="/admin/deletion-requests" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+          <Link href="/admin/deletion-requests" className="bg-white border border-beige rounded-2xl p-4 sm:p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">🗑️ בקשות מחיקת נתונים</div>
             <p className="text-sm text-textMuted">עיין בבקשות מחיקה ועדכן סטטוס טיפול.</p>
           </Link>
-          <Link href="/admin/appointments" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+          <Link href="/admin/appointments" className="bg-white border border-beige rounded-2xl p-4 sm:p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">📅 ניהול תורים</div>
             <p className="text-sm text-textMuted">צפה בתורים ממתינים, אשר או בטל.</p>
           </Link>
-          <Link href="/admin/forum" className="bg-white border border-beige rounded-2xl p-6 hover:border-pink transition-colors">
+          <Link href="/admin/forum" className="bg-white border border-beige rounded-2xl p-4 sm:p-6 hover:border-pink transition-colors">
             <div className="font-bold text-textMain mb-1">💬 ניהול קהילה</div>
             <p className="text-sm text-textMuted">צפה במחק פוסטים בפורום הקהילה.</p>
           </Link>

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   const admin = getAdminSupabase()
   const { data, error } = await admin
     .from('forum_posts')
-    .insert({ anonymous_handle: 'SIEL', title, content, category: category || 'כללי' })
+    .insert({ anonymous_handle: 'SIEL', title, content, category: category || 'כללי', is_moderated: false })
     .select()
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

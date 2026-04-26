@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface Rabbi {
@@ -12,6 +13,7 @@ interface Rabbi {
 }
 
 export default function AdminRabbisPage() {
+  const router = useRouter()
   const [rabbis, setRabbis] = useState<Rabbi[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
@@ -50,10 +52,10 @@ export default function AdminRabbisPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin" className="text-textMuted text-sm hover:text-pink">← חזרה</Link>
+          <button onClick={() => router.push('/admin')} className="text-textMuted text-sm hover:text-pink px-2 py-1">← חזרה</button>
           <h1 className="text-2xl font-bold text-oak">ניהול רבנים</h1>
         </div>
 

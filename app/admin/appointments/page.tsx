@@ -22,10 +22,10 @@ export default async function AdminAppointmentsPage() {
   const providerMap = Object.fromEntries((providers ?? []).map((p: { id: string; name: string }) => [p.id, p.name]))
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin" className="text-textMuted text-sm hover:text-pink">← חזרה</Link>
+          <Link href="/admin" className="text-textMuted text-sm hover:text-pink px-2 py-2 inline-block">← חזרה</Link>
           <h1 className="text-2xl font-bold text-oak">תורים ממתינים</h1>
         </div>
 

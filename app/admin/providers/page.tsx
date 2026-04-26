@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface Provider {
   id: string
@@ -17,6 +17,7 @@ interface Provider {
 }
 
 export default function AdminProvidersPage() {
+  const router = useRouter()
   const [providers, setProviders] = useState<Provider[]>([])
   const [loading, setLoading] = useState(true)
   const [actionId, setActionId] = useState<string | null>(null)
@@ -55,10 +56,10 @@ export default function AdminProvidersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin" className="text-textMuted text-sm hover:text-pink">← חזרה</Link>
+          <button onClick={() => router.push('/admin')} className="text-textMuted text-sm hover:text-pink px-2 py-1">← חזרה</button>
           <h1 className="text-2xl font-bold text-oak">ניהול בעלות עסק</h1>
         </div>
 

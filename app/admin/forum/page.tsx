@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface ForumPost {
   id: string
@@ -16,6 +16,7 @@ interface ForumPost {
 const CATEGORIES = ['כללי', 'שאלות', 'חוויות', 'תמיכה', 'עצות']
 
 export default function AdminForumPage() {
+  const router = useRouter()
   const [posts, setPosts] = useState<ForumPost[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -65,16 +66,16 @@ export default function AdminForumPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream p-8" dir="rtl">
+    <main className="min-h-screen bg-cream p-4 sm:p-8" dir="rtl">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-textMuted hover:text-pink text-sm">← חזרה לדשבורד</Link>
-            <h1 className="text-2xl font-bold text-oak">💬 ניהול פוסטים בקהילה</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3 flex-wrap">
+            <button onClick={() => router.push("/admin")} className="text-textMuted hover:text-pink text-sm px-2 py-1">← חזרה</button>
+            <h1 className="text-xl sm:text-2xl font-bold text-oak">💬 ניהול פוסטים</h1>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="text-sm px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+            className="text-sm px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors self-start sm:self-auto"
           >
             {showForm ? 'ביטול' : '+ פרסם כ-SIEL'}
           </button>
