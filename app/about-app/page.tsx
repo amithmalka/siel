@@ -98,19 +98,6 @@ export default function AboutAppPage() {
           </div>
         </div>
 
-        {/* Beta note */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">
-          <p className="text-sm font-semibold text-amber-800 mb-1">האפליקציה בשלב בדיקות (Beta)</p>
-          <p className="text-xs text-amber-700 leading-relaxed">
-            אנחנו בשלב גמר הפיתוח לפני השקה רשמית.
-            אם קיבלת גישה לבדיקה — נשמח לשמוע מה עובד, מה פחות, ומה חסר.
-            אפשר לשלוח משוב ל:
-          </p>
-          <a href="mailto:amithmalka1@gmail.com" className="text-pink text-sm font-medium mt-2 inline-block hover:underline">
-            amithmalka1@gmail.com
-          </a>
-        </div>
-
         <p className="text-center text-xs text-textMuted">
           SIEL © {new Date().getFullYear()} · כל הזכויות שמורות
         </p>

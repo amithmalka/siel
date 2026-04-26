@@ -66,54 +66,90 @@ export function Sidebar({ role }: { role: UserRole }) {
     router.refresh()
   }
 
-  return (
-    <aside className="w-64 bg-white border-r border-beige flex flex-col h-screen fixed top-0 left-0">
-      {/* Logo */}
-      <div className="p-6 border-b border-beige">
-        <span className="text-2xl font-bold tracking-widest text-oak">SIEL</span>
-        <p className="text-xs text-textMuted mt-1">
-          {role === 'rabbi' ? t.rabbiManagement : role === 'admin' ? 'ניהול מערכת' : t.beautyManagement}
-        </p>
-      </div>
+  const accentText = role === 'rabbi' ? 'text-oak' : role === 'admin' ? 'text-purple-600' : 'text-pink'
 
-      {/* Nav */}
-      <nav className="flex-1 p-4 space-y-1">
-        {links.map(({ href, label, icon: Icon }) => {
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 bg-white border-r border-beige flex-col h-screen fixed top-0 left-0 z-30">
+        {/* Logo */}
+        <div className="p-6 border-b border-beige">
+          <span className="text-2xl font-bold tracking-widest text-oak">SIEL</span>
+          <p className="text-xs text-textMuted mt-1">
+            {role === 'rabbi' ? t.rabbiManagement : role === 'admin' ? 'ניהול מערכת' : t.beautyManagement}
+          </p>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 p-4 space-y-1">
+          {links.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || (href !== '/' + role && pathname.startsWith(href))
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  active
+                    ? `${accentColor} text-white`
+                    : 'text-textLight hover:bg-cream hover:text-textMain'
+                }`}
+              >
+                <Icon size={16} />
+                <span>{label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Language toggle + Sign out */}
+        <div className="p-4 border-t border-beige space-y-1">
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
+          >
+            <span className="text-base">{lang === 'he' ? '🇬🇧' : '🇮🇱'}</span>
+            <span>{lang === 'he' ? 'English' : 'עברית'}</span>
+          </button>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
+          >
+            <LogOut size={16} />
+            <span>{t.signOut}</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile top header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-beige flex items-center justify-between px-4 h-14">
+        <span className="text-xl font-bold tracking-widest text-oak">SIEL</span>
+        <button
+          onClick={signOut}
+          className="flex items-center gap-1.5 text-sm text-textMuted"
+        >
+          <LogOut size={15} />
+          <span>{t.signOut}</span>
+        </button>
+      </header>
+
+      {/* Mobile bottom nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-beige flex items-stretch justify-around" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        {links.slice(0, 5).map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/' + role && pathname.startsWith(href))
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                active
-                  ? `${accentColor} text-white`
-                  : 'text-textLight hover:bg-cream hover:text-textMain'
+              className={`flex flex-col items-center justify-center gap-1 flex-1 py-3 min-h-[64px] transition-all active:bg-cream ${
+                active ? accentText : 'text-textLight'
               }`}
             >
-              <Icon size={16} />
-              <span>{label}</span>
+              <Icon size={22} strokeWidth={active ? 2.2 : 1.8} />
+              <span className="text-[10px] font-medium leading-tight text-center">{label}</span>
             </Link>
           )
         })}
       </nav>
-
-      {/* Language toggle + Sign out */}
-      <div className="p-4 border-t border-beige space-y-1">
-        <button
-          onClick={toggleLang}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
-        >
-          <span className="text-base">{lang === 'he' ? '🇬🇧' : '🇮🇱'}</span>
-          <span>{lang === 'he' ? 'English' : 'עברית'}</span>
-        </button>
-        <button
-          onClick={signOut}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-textMuted hover:bg-cream hover:text-textMain w-full transition-all"
-        >
-          <LogOut size={16} />
-          <span>{t.signOut}</span>
-        </button>
-      </div>
-    </aside>
+    </>
   )
 }
