@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -189,7 +189,7 @@ export default function BeautyProfilePage() {
   const [dataLoaded, setDataLoaded] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const specialtiesRef = useRef<TagInputHandle>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function load() {
@@ -275,8 +275,7 @@ export default function BeautyProfilePage() {
       toast.error('שגיאה בשמירה: ' + error.message)
       return
     }
-    toast.success('הפרופיל עודכן בהצלחה')
-    router.push('/beauty')
+    toast.success('הפרופיל עודכן בהצלחה ✓')
   }
 
   async function submitForReview() {
@@ -420,7 +419,7 @@ export default function BeautyProfilePage() {
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${r.done ? 'bg-green-100 text-green-600' : 'bg-beige text-textMuted'}`}>
                       {r.done ? <Check size={11} /> : ''}
                     </span>
-                    <span className={`text-sm flex-1 ${r.done ? 'text-textMuted line-through' : 'text-textMain'}`}>{r.label}</span>
+                    <span className={`text-sm flex-1 ${r.done ? 'text-green-700 font-medium' : 'text-textMain'}`}>{r.label}</span>
                     {!r.done && 'href' in r && r.href && (
                       <a href={r.href} className="text-xs text-pink font-medium hover:underline flex-shrink-0">הוסיפי ←</a>
                     )}
