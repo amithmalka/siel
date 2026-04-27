@@ -73,6 +73,20 @@ export const translations = {
     newApptNotifTitle: 'SIEL — תור חדש',
     apptConfirmed: 'התור אושר',
     apptCancelled: 'התור בוטל',
+    // Forgot / Reset password
+    forgotPassword: 'שכחתי סיסמה',
+    forgotPasswordTitle: 'איפוס סיסמה',
+    forgotPasswordDesc: 'הכניסי את האימייל שלך ונשלח לך קישור לאיפוס הסיסמה.',
+    sendResetLink: 'שלחי קישור',
+    resetEmailSent: 'נשלח! בדקי את תיבת המייל שלך.',
+    backToLogin: 'חזרה לכניסה',
+    newPassword: 'סיסמה חדשה',
+    confirmNewPassword: 'אישור סיסמה',
+    passwordsNoMatch: 'הסיסמאות אינן תואמות',
+    setNewPassword: 'שמרי סיסמה חדשה',
+    passwordUpdated: 'הסיסמה עודכנה בהצלחה!',
+    // Email verification
+    emailVerificationSent: 'נשלח מייל אימות! אשרי את הכתובת לפני הכניסה.',
     // Unauthorized
     noAccess: 'אין גישה',
     noPermission: 'אין לך הרשאות לדף זה.',
@@ -149,6 +163,20 @@ export const translations = {
     newApptNotifTitle: 'SIEL — New Appointment',
     apptConfirmed: 'Appointment confirmed',
     apptCancelled: 'Appointment cancelled',
+    // Forgot / Reset password
+    forgotPassword: 'Forgot password',
+    forgotPasswordTitle: 'Reset Password',
+    forgotPasswordDesc: 'Enter your email and we will send you a reset link.',
+    sendResetLink: 'Send Link',
+    resetEmailSent: 'Sent! Check your inbox.',
+    backToLogin: 'Back to Login',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm Password',
+    passwordsNoMatch: 'Passwords do not match',
+    setNewPassword: 'Save New Password',
+    passwordUpdated: 'Password updated successfully!',
+    // Email verification
+    emailVerificationSent: 'Verification email sent! Please confirm your address before logging in.',
     // Unauthorized
     noAccess: 'No Access',
     noPermission: "You don't have permission to access this page.",
