@@ -276,6 +276,7 @@ export default function BeautyProfilePage() {
       return
     }
     toast.success('הפרופיל עודכן בהצלחה ✓')
+    router.push('/beauty/setup')
   }
 
   async function submitForReview() {

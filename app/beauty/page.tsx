@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -53,7 +53,7 @@ export default function BeautyDashboard() {
   const [remindingId, setRemindingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [providerId, setProviderId] = useState('')
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function load() {
