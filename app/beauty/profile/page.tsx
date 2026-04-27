@@ -257,9 +257,10 @@ export default function BeautyProfilePage() {
     await new Promise((r) => setTimeout(r, 50))
 
     setLoading(true)
-    const { error } = await supabase
-      .from('service_providers')
-      .update({
+    const res = await fetch('/api/beauty/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         name,
         specialty: specialties.join(', '),
         city: cities.join(', '),
@@ -267,16 +268,17 @@ export default function BeautyProfilePage() {
         phone,
         bio,
         is_available: isAvailable,
-      })
-      .eq('id', providerId)
+      }),
+    })
     setLoading(false)
 
-    if (error) {
-      toast.error('שגיאה בשמירה: ' + error.message)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      toast.error('שגיאה בשמירה: ' + (json.error ?? res.statusText))
       return
     }
     toast.success('הפרופיל עודכן בהצלחה ✓')
-    router.push('/beauty/setup')
+    window.location.href = '/beauty/setup'
   }
 
   async function submitForReview() {
