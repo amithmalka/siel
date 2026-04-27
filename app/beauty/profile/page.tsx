@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { deleteAccount } from '@/app/account/actions'
+import { saveProfile } from './actions'
 import { Check } from 'lucide-react'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -257,10 +258,8 @@ export default function BeautyProfilePage() {
     await new Promise((r) => setTimeout(r, 50))
 
     setLoading(true)
-    const res = await fetch('/api/beauty/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    try {
+      await saveProfile({
         name,
         specialty: specialties.join(', '),
         city: cities.join(', '),
@@ -268,17 +267,14 @@ export default function BeautyProfilePage() {
         phone,
         bio,
         is_available: isAvailable,
-      }),
-    })
-    setLoading(false)
-
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
-      toast.error('שגיאה בשמירה: ' + (json.error ?? res.statusText))
-      return
+      })
+      toast.success('הפרופיל עודכן בהצלחה ✓')
+      window.location.href = '/beauty/setup'
+    } catch (err) {
+      toast.error('שגיאה בשמירה: ' + (err instanceof Error ? err.message : 'נסי שוב'))
+    } finally {
+      setLoading(false)
     }
-    toast.success('הפרופיל עודכן בהצלחה ✓')
-    window.location.href = '/beauty/setup'
   }
 
   async function submitForReview() {

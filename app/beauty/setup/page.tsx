@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAdminSupabase } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -7,7 +8,9 @@ export default async function BeautySetupPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: boUser } = await supabase
+  const admin = getAdminSupabase()
+
+  const { data: boUser } = await admin
     .from('backoffice_users')
     .select('linked_entity_id')
     .eq('id', user!.id)
@@ -16,9 +19,9 @@ export default async function BeautySetupPage() {
   const providerId = boUser?.linked_entity_id
 
   const [{ data: sp }, { count: svcCount }, { count: slotCount }] = await Promise.all([
-    supabase.from('service_providers').select('bio, portfolio_paths').eq('id', providerId).single(),
-    supabase.from('provider_services').select('*', { count: 'exact', head: true }).eq('provider_id', providerId).eq('is_active', true),
-    supabase.from('availability_slots').select('*', { count: 'exact', head: true }).eq('provider_id', providerId),
+    admin.from('service_providers').select('bio, portfolio_paths').eq('id', providerId).single(),
+    admin.from('provider_services').select('*', { count: 'exact', head: true }).eq('provider_id', providerId).eq('is_active', true),
+    admin.from('availability_slots').select('*', { count: 'exact', head: true }).eq('provider_id', providerId),
   ])
 
   const steps = [
