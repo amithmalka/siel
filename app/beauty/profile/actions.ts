@@ -12,6 +12,8 @@ export async function saveProfile(data: {
   phone: string
   bio: string
   is_available: boolean
+  profile_image_path?: string
+  submitted_for_review?: boolean
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
