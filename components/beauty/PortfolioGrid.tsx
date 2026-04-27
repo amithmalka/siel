@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { Plus, Trash2 } from 'lucide-react'
+import { updatePortfolioPaths } from '@/app/beauty/portfolio/actions'
 
 interface Props {
   providerId: string
@@ -14,8 +14,6 @@ export function PortfolioGrid({ providerId, initialPaths }: Props) {
   const [paths, setPaths] = useState<string[]>(initialPaths)
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const getPublicUrl = (path: string) => `${supabaseUrl}/storage/v1/object/public/service-portfolios/${path}`
 
@@ -37,18 +35,25 @@ export function PortfolioGrid({ providerId, initialPaths }: Props) {
       return
     }
     const newPaths = [...paths, path]
-    await supabase.from('service_providers').update({ portfolio_paths: newPaths }).eq('id', providerId)
-    setPaths(newPaths)
-    toast.success('התמונה הועלתה')
+    try {
+      await updatePortfolioPaths(newPaths)
+      setPaths(newPaths)
+      toast.success('התמונה הועלתה')
+    } catch {
+      toast.error('שגיאה בשמירה')
+    }
     setUploading(false)
   }
 
   async function remove(path: string) {
-    await supabase.storage.from('service-portfolios').remove([path])
     const newPaths = paths.filter((p) => p !== path)
-    await supabase.from('service_providers').update({ portfolio_paths: newPaths }).eq('id', providerId)
-    setPaths(newPaths)
-    toast.success('התמונה הוסרה')
+    try {
+      await updatePortfolioPaths(newPaths)
+      setPaths(newPaths)
+      toast.success('התמונה הוסרה')
+    } catch {
+      toast.error('שגיאה בהסרה')
+    }
   }
 
   return (
@@ -76,6 +81,15 @@ export function PortfolioGrid({ providerId, initialPaths }: Props) {
           </div>
         ))}
       </div>
+
+      {paths.length > 0 && (
+        <button
+          onClick={() => { window.location.href = '/beauty/setup' }}
+          className="mt-6 w-full max-w-3xl bg-pink text-white font-semibold py-3 rounded-xl text-sm hover:opacity-90 transition-opacity"
+        >
+          סיימתי ←
+        </button>
+      )}
 
       <input
         ref={inputRef}
