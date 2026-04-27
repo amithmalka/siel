@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -22,16 +22,28 @@ const ISRAELI_CITIES = [
   'צפת', 'קלנסווה', 'קריית אונו', 'קריית ביאליק', 'קריית גת', 'קריית מוצקין', 'קריית מלאכי',
   'קריית שמונה', 'קריית ים', 'ראש העין', 'ראשון לציון', 'רהט', 'רחובות', 'רמה', 'רמלה',
   'רמת גן', 'רמת השרון', 'רעננה', 'שדרות', 'שפרעם', 'תל אביב', 'תל מונד', 'אום אל-פחם',
-  'עמנואל', 'אלפי מנשה', 'אבטליון', 'גן יבנה', 'כסיפה', 'לקיה', 'רהט', 'הוד השרון',
+  'עמנואל', 'אלפי מנשה', 'גן יבנה', 'כסיפה', 'לקיה',
 ]
 
-// ── Free-form tag input (for specialties) ──────────────────────────────────────
-function TagInput({ tags, onChange, placeholder }: {
+// ── TagInput: free-form multi-tag with flush handle ───────────────────────────
+interface TagInputHandle { flush: () => void }
+
+const TagInput = forwardRef<TagInputHandle, {
   tags: string[]
   onChange: (t: string[]) => void
   placeholder?: string
-}) {
+}>(function TagInput({ tags, onChange, placeholder }, ref) {
   const [input, setInput] = useState('')
+
+  useImperativeHandle(ref, () => ({
+    flush() {
+      const trimmed = input.trim()
+      if (trimmed && !tags.includes(trimmed)) {
+        onChange([...tags, trimmed])
+      }
+      setInput('')
+    },
+  }))
 
   function addTag(val: string) {
     const trimmed = val.trim()
@@ -67,21 +79,16 @@ function TagInput({ tags, onChange, placeholder }: {
       />
     </div>
   )
-}
+})
 
-// ── City autocomplete input ────────────────────────────────────────────────────
-function CityInput({ cities, onChange }: {
-  cities: string[]
-  onChange: (c: string[]) => void
-}) {
+// ── CityInput: autocomplete from Israeli cities list ──────────────────────────
+function CityInput({ cities, onChange }: { cities: string[]; onChange: (c: string[]) => void }) {
   const [input, setInput] = useState('')
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   const suggestions = input.trim().length > 0
-    ? ISRAELI_CITIES.filter(
-        (c) => c.includes(input.trim()) && !cities.includes(c)
-      ).slice(0, 8)
+    ? ISRAELI_CITIES.filter((c) => c.includes(input.trim()) && !cities.includes(c)).slice(0, 8)
     : []
 
   function add(city: string) {
@@ -109,7 +116,6 @@ function CityInput({ cities, onChange }: {
     }
   }
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
@@ -142,21 +148,16 @@ function CityInput({ cities, onChange }: {
       {open && (suggestions.length > 0 || input.trim().length > 1) && (
         <div className="absolute top-full right-0 left-0 mt-1 bg-white border border-beige rounded-xl shadow-lg z-20 overflow-hidden">
           {suggestions.map((c) => (
-            <button
-              key={c}
-              type="button"
+            <button key={c} type="button"
               onMouseDown={(e) => { e.preventDefault(); add(c) }}
-              className="w-full text-right px-4 py-2.5 text-sm text-textMain hover:bg-cream transition-colors border-b border-beige last:border-0"
-            >
+              className="w-full text-right px-4 py-2.5 text-sm text-textMain hover:bg-cream transition-colors border-b border-beige last:border-0">
               {c}
             </button>
           ))}
           {input.trim().length > 1 && !ISRAELI_CITIES.includes(input.trim()) && !cities.includes(input.trim()) && (
-            <button
-              type="button"
+            <button type="button"
               onMouseDown={(e) => { e.preventDefault(); addCustom() }}
-              className="w-full text-right px-4 py-2.5 text-sm text-pink hover:bg-pink/5 transition-colors"
-            >
+              className="w-full text-right px-4 py-2.5 text-sm text-pink hover:bg-pink/5 transition-colors">
               הוסיפי &quot;{input.trim()}&quot; ידנית
             </button>
           )}
@@ -166,7 +167,7 @@ function CityInput({ cities, onChange }: {
   )
 }
 
-// ── Main page ──────────────────────────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function BeautyProfilePage() {
   const router = useRouter()
   const [userId, setUserId] = useState('')
@@ -187,6 +188,7 @@ export default function BeautyProfilePage() {
   const [submitting, setSubmitting] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const specialtiesRef = useRef<TagInputHandle>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -241,18 +243,44 @@ export default function BeautyProfilePage() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
+
+    // Guard: data not loaded yet
+    if (!providerId) {
+      toast.error('אנא המתיני לטעינת הנתונים')
+      return
+    }
+
+    // Flush any pending text still in tag inputs before saving
+    specialtiesRef.current?.flush()
+
+    // Small delay so state update from flush propagates
+    await new Promise((r) => setTimeout(r, 50))
+
     setLoading(true)
     const { error } = await supabase
       .from('service_providers')
-      .update({ name, specialty: specialties.join(', '), city: cities.join(', '), address, phone, bio, is_available: isAvailable })
+      .update({
+        name,
+        specialty: specialties.join(', '),
+        city: cities.join(', '),
+        address,
+        phone,
+        bio,
+        is_available: isAvailable,
+      })
       .eq('id', providerId)
     setLoading(false)
-    if (error) { toast.error(error.message); return }
-    toast.success('הפרופיל עודכן')
+
+    if (error) {
+      toast.error('שגיאה בשמירה: ' + error.message)
+      return
+    }
+    toast.success('הפרופיל עודכן בהצלחה')
     router.push('/beauty')
   }
 
   async function submitForReview() {
+    if (!providerId) return
     setSubmitting(true)
     const { error } = await supabase
       .from('service_providers')
@@ -269,12 +297,13 @@ export default function BeautyProfilePage() {
     : null
 
   const requirements = [
-    { label: 'קצת עלייך (ביו)', done: bio.trim().length > 0 },
+    { label: 'ביו (כמה מילים עלייך)', done: bio.trim().length > 0 },
     { label: 'עיר / כתובת', done: cities.length > 0 || address.trim().length > 0 },
     { label: 'תמונות עבודה', href: '/beauty/portfolio', done: portfolioPaths.length > 0 },
     { label: 'שעות זמינות', href: '/beauty/availability', done: hasSlots },
   ]
-  const allRequirementsMet = requirements.every((r) => r.done)
+  const doneCount = requirements.filter((r) => r.done).length
+  const allRequirementsMet = doneCount === requirements.length
 
   return (
     <div dir="rtl" className="max-w-lg">
@@ -313,18 +342,13 @@ export default function BeautyProfilePage() {
             className="w-full border border-beige rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-pink bg-cream" dir="rtl" />
         </div>
 
-        {/* Specialties — free-form multi-tag */}
         <div>
           <label className="block text-sm font-medium text-textLight mb-1">התמחויות</label>
-          <p className="text-xs text-textMuted mb-1.5">כתבי כל מקצוע שתרצי ולחצי Enter להוספה — אפשר להוסיף כמה שתרצי</p>
-          <TagInput
-            tags={specialties}
-            onChange={setSpecialties}
-            placeholder="למשל: ציפורניים גל, הרמת ריסים, גבות, איפור..."
-          />
+          <p className="text-xs text-textMuted mb-1.5">כתבי כל מקצוע שתרצי ולחצי Enter — אפשר להוסיף כמה שתרצי</p>
+          <TagInput ref={specialtiesRef} tags={specialties} onChange={setSpecialties}
+            placeholder="למשל: ציפורניים גל, הרמת ריסים, גבות, איפור..." />
         </div>
 
-        {/* Cities — autocomplete with Israeli cities list */}
         <div>
           <label className="block text-sm font-medium text-textLight mb-1">ערים / אזורי פעילות <span className="text-pink">*</span></label>
           <p className="text-xs text-textMuted mb-1.5">הקלידי עיר ובחרי מהרשימה — אפשר לבחור כמה ערים</p>
@@ -359,41 +383,55 @@ export default function BeautyProfilePage() {
           </button>
         </div>
 
-        <button type="submit" disabled={loading}
+        <button type="submit" disabled={loading || !dataLoaded}
           className="w-full bg-pink text-white font-medium py-3 rounded-xl text-sm hover:opacity-90 disabled:opacity-60">
-          {loading ? 'שומר...' : 'שמירת פרטים'}
+          {loading ? 'שומר...' : !dataLoaded ? 'טוענת...' : 'שמירת פרטים'}
         </button>
       </form>
 
-      {/* Submit for review */}
+      {/* Progress checklist + submit for review */}
       {dataLoaded && (
-        <div className={`mt-5 rounded-2xl border p-5 ${submittedForReview ? 'bg-green-50 border-green-200' : allRequirementsMet ? 'bg-white border-oak/30' : 'bg-white border-beige'}`}>
-          <h2 className="text-sm font-bold text-textMain mb-3">
-            {submittedForReview ? '✅ הבקשה נשלחה לאישור' : 'שליחה לאישור הנהלת SIEL'}
-          </h2>
-
+        <div className={`mt-5 rounded-2xl border p-5 ${submittedForReview ? 'bg-green-50 border-green-200' : 'bg-white border-beige'}`}>
           {submittedForReview ? (
-            <p className="text-xs text-green-700">הפרופיל שלך נמצא בבדיקה. נחזור אלייך בהקדם.</p>
+            <>
+              <h2 className="text-sm font-bold text-green-800 mb-1">✅ הבקשה נשלחה לאישור</h2>
+              <p className="text-xs text-green-700">הפרופיל שלך נמצא בבדיקה. נחזור אלייך בהקדם.</p>
+            </>
           ) : (
             <>
-              <p className="text-xs text-textMuted mb-3">כדי להופיע באפליקציה, מלאי את כל השדות הבאים ואז שלחי לאישור:</p>
-              <ul className="space-y-2 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-textMain">שליחה לאישור הנהלת SIEL</h2>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${allRequirementsMet ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {doneCount} מתוך {requirements.length} הושלמו
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-beige rounded-full h-1.5 mb-4">
+                <div
+                  className={`h-1.5 rounded-full transition-all ${allRequirementsMet ? 'bg-green-500' : 'bg-amber-400'}`}
+                  style={{ width: `${(doneCount / requirements.length) * 100}%` }}
+                />
+              </div>
+
+              <ul className="space-y-2.5 mb-4">
                 {requirements.map((r) => (
-                  <li key={r.label} className="flex items-center gap-2 text-xs">
-                    <span className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${r.done ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
-                      {r.done ? <Check size={10} /> : '!'}
+                  <li key={r.label} className="flex items-center gap-2.5">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${r.done ? 'bg-green-100 text-green-600' : 'bg-beige text-textMuted'}`}>
+                      {r.done ? <Check size={11} /> : ''}
                     </span>
-                    <span className={r.done ? 'text-textMuted line-through' : 'text-textMain font-medium'}>{r.label}</span>
+                    <span className={`text-sm flex-1 ${r.done ? 'text-textMuted line-through' : 'text-textMain'}`}>{r.label}</span>
                     {!r.done && 'href' in r && r.href && (
-                      <a href={r.href} className="text-pink hover:underline">← מלאי כאן</a>
+                      <a href={r.href} className="text-xs text-pink font-medium hover:underline flex-shrink-0">הוסיפי ←</a>
                     )}
                   </li>
                 ))}
               </ul>
+
               <button type="button" onClick={submitForReview}
                 disabled={!allRequirementsMet || submitting}
                 className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${allRequirementsMet ? 'bg-oak text-white hover:opacity-90' : 'bg-beige text-textMuted cursor-not-allowed'} disabled:opacity-60`}>
-                {submitting ? 'שולחת...' : allRequirementsMet ? 'שלחי לאישור SIEL ←' : 'יש למלא את כל השדות הנדרשים'}
+                {submitting ? 'שולחת...' : allRequirementsMet ? 'שלחי לאישור SIEL ←' : 'השלימי את כל השדות כדי לשלוח'}
               </button>
             </>
           )}
@@ -402,7 +440,7 @@ export default function BeautyProfilePage() {
 
       <div className="mt-8 border-t border-beige pt-6">
         <h2 className="text-sm font-semibold text-textMuted mb-2">מחיקת חשבון</h2>
-        <p className="text-xs text-textMuted mb-4">מחיקת החשבון תסיר אותך מהחיפוש באפליקציה. תוכלי להצטרף מחדש בעתיד.</p>
+        <p className="text-xs text-textMuted mb-4">מחיקת החשבון תסיר אותך מהחיפוש באפליקציה.</p>
         <button type="button"
           onClick={async () => {
             if (!confirm('את בטוחה שתרצי למחוק את החשבון? לא ניתן לבטל פעולה זו.')) return
